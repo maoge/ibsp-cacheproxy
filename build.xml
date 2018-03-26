@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="output" basedir=".">
+	<tstamp>
+	</tstamp>
+	<property file="build.properties" />
+	<property file="version.properties" />
+	<property environment="env" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="build.dir" value="${basedir}/build" />
+	<property name="output.dir" value="${basedir}/output" />
+	<property name="so.src.dir" value="${src.dir}/com/ctg/itrdc/cache/access" />
+	<property name="so.dest.dir" value="${build.dir}/com/ctg/itrdc/cache/access" />
+
+	<target name="output">
+		<antcall target="clean" />
+		<antcall target="init" />
+		<antcall target="getversion" />
+		<antcall target="build" />
+		<antcall target="copy" />
+		<antcall target="copylib" />
+		<antcall target="makejar" />
+	</target>
+
+	<path id="project.classpath">
+		<fileset file="${lib.dir}/*.jar" />
+	</path>
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${output.dir}" />
+	</target>
+
+	<target name="getversion">
+		<propertyfile file="version.properties" comment="This is Version File">
+			<entry key="buildDate" type="date" value="now" pattern="yyyy-MM-dd HH:mm:ss" />
+		</propertyfile>
+		<property file="version.properties" />
+		<copy todir="${build.dir}">
+			<fileset dir=".">
+				<include name="version.properties" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="build">
+		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="on">
+			<compilerarg line="-encoding UTF-8"/>
+			<classpath refid="project.classpath" />
+		</javac>
+	</target>
+
+	<target name="copy">
+		<copy todir="${build.dir}" overwrite="true">
+			<fileset dir="${src.dir}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="copylib">
+		<mkdir dir="${output.dir}/lib" />
+		<copy todir="${output.dir}/lib">
+			<fileset dir="${lib.dir}">
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="makejar" depends="build">
+		<jar jarfile="${output.dir}/${projectname}.jar">
+			<fileset dir="${build.dir}">
+				<include name="ibsp/cache/access/**"/>
+			</fileset>
+			
+			<manifest>
+				<attribute name="Main-Class" value="ibsp.cache.access" />
+			</manifest>
+		</jar>
+
+	</target>
+</project>
