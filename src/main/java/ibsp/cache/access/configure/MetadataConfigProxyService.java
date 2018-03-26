@@ -1,36 +1,19 @@
 package ibsp.cache.access.configure;
 
-import java.io.File;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.ctg.itrdc.cache.common.Constants;
 import com.ctg.itrdc.cache.common.TaskStatusConstants;
-import com.ctg.itrdc.cache.common.cacheconf.bean.AccessConfig;
-import com.ctg.itrdc.cache.common.cacheconf.bean.AccessNode;
-import com.ctg.itrdc.cache.common.cacheconf.bean.GroupConfig;
 import com.ctg.itrdc.cache.common.cacheconf.bean.GroupNode;
 import com.ctg.itrdc.cache.common.cacheconf.bean.MasterNode;
 import com.ctg.itrdc.cache.common.cacheconf.bean.SlaveNode;
-import com.ctg.itrdc.cache.common.exception.CacheConfigException;
-import com.ctg.itrdc.cache.common.utils.CacheConfigUtils;
-import com.github.zkclient.IZkDataListener;
 
-import ibsp.cache.access.Config;
 import ibsp.cache.access.route.GroupInfo;
 import ibsp.cache.access.route.Node;
 import ibsp.cache.access.route.Proxy;
@@ -38,7 +21,6 @@ import ibsp.cache.access.route.GroupInfo.NodeType;
 import ibsp.cache.access.route.GroupInfo.OperateType;
 import ibsp.cache.access.util.CONSTS;
 import ibsp.cache.access.util.HttpUtils;
-import ibsp.cache.access.util.RedisUtil;
 import ibsp.cache.access.util.SVarObject;
 
 public class MetadataConfigProxyService implements IConfigProxyService {
@@ -134,25 +116,7 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 					}
 				}
 			}
-			
-//			boolean bChangeProxyGroups = false;
-//			AccessConfig accessConfig = null;
-//			AccessNode accessNode = null;
-//			GroupConfig groupConfig = null;
-//			StringBuffer sbfConfigData = new StringBuffer();
-//			if(!configUtils.chkConfigVersion(accessVersion, zkRootPath + Constants.DEFL_PATH_SPLIT + Constants.DEFL_ACCESS_ZK_PATH_NAME)) {
-//				accessConfig = configUtils.getAccessConfig(zkRootPath);
-//				accessNode = configUtils.getAccessNode(zkRootPath, proxyName);
-//				accessVersion = accessConfig.getVersion();
-//				if(accessNode==null) {
-//					throw new Exception(proxyName + "节点配置信息为空!");
-//				}
-//				proxyConfigInfo = JSONObject.toJSONString(accessNode);
-//				log.info("load proxyConfigInfo:" + proxyConfigInfo);
-//				bChangeProxyGroups = initProxyInfo(accessNode);
-//			}
-//			sbfConfigData.append("proxy").append("^").append(proxyConfigInfo).append("\r\n"); 				    			
-//
+
 //			if(bChangeProxyGroups || !configUtils.chkConfigVersion(groupsVersion, zkRootPath + Constants.DEFL_PATH_SPLIT + Constants.DEFL_GROUPS_ZK_PATH_NAME)) {
 //				groupsConfigInfo.clear();
 //				groupConfig = configUtils.getGroupConfig(zkRootPath);
