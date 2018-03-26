@@ -24,6 +24,7 @@ public final class CONSTS {
 	
 	public static final String FUN_URL_TEST            = "test";
 	public static final String FUN_GET_PROXY_INFO      = "getProxyInfoByID";
+	public static final String FUN_GET_CLUSTER_INFO    = "getNodeClusterInfo";
 	
 	//original
 	public static final String CONS_ZOOKEEPER_HOST = "zookeeper.host";

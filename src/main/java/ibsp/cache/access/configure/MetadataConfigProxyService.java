@@ -96,7 +96,8 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		if (this.initiated) return;
 		String proxyInfoUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
 				CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_PROXY_INFO, "INST_ID="+this.proxyId);
-		String cacheNodeUrl = "";
+		String cacheNodeUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
+				CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_CLUSTER_INFO, "SERV_ID="+this.serviceId);
 		updateLock.lock();
 		
 		try {
@@ -113,8 +114,27 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 					proxy.setGroups(this.serviceId);
 					proxy.setJmxport(Integer.parseInt(object.getString("STAT_PORT")));
 					proxy.setProxyName(this.proxyId);
+				} else {
+					logger.error("接入机初始化异常！"+jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO));
 				}
 			}
+			
+			//init cluster info
+			if (proxy != null) {
+				retInvoke = HttpUtils.getData(cacheNodeUrl, sVarInvoke);
+				if (retInvoke) {
+					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
+					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
+						JSONArray array = jsonObj.getJSONArray(CONSTS.JSON_HEADER_RET_INFO);
+						
+						//TODO
+						System.out.println(array);
+					} else {
+						logger.error("接入机初始化异常！"+jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO));
+					}
+				}
+			}
+			
 //			boolean bChangeProxyGroups = false;
 //			AccessConfig accessConfig = null;
 //			AccessNode accessNode = null;
