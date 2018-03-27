@@ -105,7 +105,7 @@ public class RouterProcessor {
 						int slot = request.getSlot();
 						
 						IRedisProcessor processor = null;
-						Node node = null;
+						CacheNode node = null;
 						NIOSession session = request.getSession();
 						try {
 							node = proxySvr.getDestNode(groupId, slot, opType);

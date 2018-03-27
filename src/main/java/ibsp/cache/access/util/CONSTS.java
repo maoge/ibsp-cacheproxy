@@ -11,6 +11,15 @@ public final class CONSTS {
 	
 	public static final String JSON_HEADER_RET_CODE    = "RET_CODE";
 	public static final String JSON_HEADER_RET_INFO    = "RET_INFO";
+	public static final String JSON_HEADER_IP          = "IP";
+	public static final String JSON_HEADER_PORT        = "PORT";
+	public static final String JSON_HEADER_RW_SEPARATE = "RW_SEPARATE";
+	public static final String JSON_HEADER_STAT_PORT   = "STAT_PORT";
+	public static final String JSON_HEADER_CACHE_SLOT  = "CACHE_SLOT";
+	public static final String JSON_HEADER_CACHE_NODE  = "CACHE_NODE";
+	public static final String JSON_HEADER_CACHE_NODE_ID   = "CACHE_NODE_ID";
+	public static final String JSON_HEADER_CLUSTER_NODE_ID = "CACHE_NODE_CLUSTER_CONTAINER_ID";
+	public static final String JSON_HEADER_TYPE        = "TYPE";
 	
 	public static final int REVOKE_OK                  = 0;
 	public static final int REVOKE_NOK                 = -1;
@@ -34,6 +43,12 @@ public final class CONSTS {
 	public static final String CONS_SERVICE_ID = "service.id";
 	public static final String CONS_PROXY_ID = "proxy.id";
 	public static final String CONS_METASVR_ROOTURL = "metasvr.rooturl";
+	
+	public static final String NODE_TYPE_MASTER      = "M";
+	public static final String NODE_TYPE_SLAVE       = "S";
+	public static final String RW_SEP_TRUE           = "1";
+	public static final String RW_SEP_FALSE          = "0";
+	public static final String SLOT_SPLITER          = "&";
 	
 	// monitor
 	public static int NORMAL_RETCODE = 0;                          // 正常返回retCode=0

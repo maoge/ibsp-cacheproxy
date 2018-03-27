@@ -1,31 +1,21 @@
 package ibsp.cache.access.route;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import ibsp.cache.access.util.IDGenerator;
 
 public class Slot implements Comparable<Object> {
 	
-	private long id;
-
-	// startSlot, endSlot不能重叠, 否则compareTo会不正常
-	private int startSlot = -1;
-	private int endSlot = -1;
-	private volatile int nodeCnt;  // slot 区段对应有几个redis实例 (从挂多个)
-	private ArrayList<String> nodes;
-	private Map<String, Boolean> nodeStatMap; // node 对应状态:enabled标记
-	private int seed = 0;
-	private static int DEFAULT_SIZE = 4;
+	private long   id;
 	
-	public Slot(int startSlot, int endSlot) {
-		this.id = IDGenerator.getGeneralIDGenerator().nextID();
+	// startSlot, endSlot不能重叠, 否则compareTo会不正常
+	private int    startSlot = -1;
+	private int    endSlot   = -1;	
+	private HaNode haNode    = null;
+	
+	public Slot(int startSlot, int endSlot, HaNode haNode) {
+		this.id        = IDGenerator.getGeneralIDGenerator().nextID();
 		this.startSlot = startSlot;
-		this.endSlot = endSlot;
-		this.nodeCnt = 0;
-		nodes = new ArrayList<String>(DEFAULT_SIZE);
-		nodeStatMap = new HashMap<String, Boolean>();
+		this.endSlot   = endSlot;
+		this.haNode    = haNode;
 	}
 	
 	public long getId() {
@@ -52,6 +42,14 @@ public class Slot implements Comparable<Object> {
 		this.endSlot = endSlot;
 	}
 	
+	public HaNode getHaNode() {
+		return haNode;
+	}
+
+	public void setHaNode(HaNode haNode) {
+		this.haNode = haNode;
+	}
+	
 	public boolean isInMargin(int slot) {
 		return slot>= startSlot && slot <= endSlot;
 	}
@@ -64,56 +62,6 @@ public class Slot implements Comparable<Object> {
 			return 1;
 		
 		return 0;
-	}
-	
-	public void addNodeName(String node, boolean enableFalg) {
-		nodes.add(node);
-		nodeStatMap.put(node, enableFalg);
-		incNodeCnt();
-	}
-	
-	public void removeNodeName(String node) {
-		for (String s : nodes) {
-			if (s.equals(node)) {
-				nodes.remove(s);
-				nodeStatMap.remove(node);
-				decNodeCnt();
-				break;
-			}
-		}
-		
-	}
-	
-	public void updateEnableStat(String nodeName, boolean stat) {
-		nodeStatMap.put(nodeName, stat);
-	}
-	
-	public void incNodeCnt() {
-		nodeCnt++;
-	}
-	
-	public void decNodeCnt() {
-		nodeCnt--;
-	}
-	
-	public int getNodeCnt() {
-		return nodeCnt;
-	}
-	
-	public String getRandomNode() {
-		if (nodeCnt > 1) {
-			// 有多个节点时循环找到一个状态为enabled的节点
-			String nodeName = null;
-			for (int i=0; i < nodeCnt; i++) {
-				nodeName = nodes.get(seed++ % nodeCnt);
-				if (nodeStatMap.get(nodeName))
-					return nodeName;
-			}
-			return null;
-		} else if (nodeCnt == 1) {
-			return nodes.get(0);
-		} else
-			return null;
 	}
 	
 	@Override

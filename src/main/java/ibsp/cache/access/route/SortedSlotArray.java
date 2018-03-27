@@ -144,10 +144,10 @@ public class SortedSlotArray {
 	public static void main(String[] args) {
 		
 		SortedSlotArray slotArr = new SortedSlotArray();
-		Slot slot1 = new Slot(0, 4095);
-		Slot slot4 = new Slot(12288, 16383);
-		Slot slot3 = new Slot(8092, 12287);
-		Slot slot2 = new Slot(4096, 8091);
+		Slot slot1 = new Slot(0, 4095, null);
+		Slot slot4 = new Slot(12288, 16383, null);
+		Slot slot3 = new Slot(8092, 12287, null);
+		Slot slot2 = new Slot(4096, 8091, null);
 		
 		slotArr.addSlot(slot1);
 		slotArr.addSlot(slot4);

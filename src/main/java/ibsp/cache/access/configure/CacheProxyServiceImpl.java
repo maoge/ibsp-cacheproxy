@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibsp.cache.access.TaskEngine;
+import ibsp.cache.access.route.CacheNode;
 import ibsp.cache.access.route.GroupInfo;
-import ibsp.cache.access.route.Node;
 import ibsp.cache.access.route.Proxy;
 import ibsp.cache.access.route.GroupInfo.OperateType;
 
@@ -57,7 +57,7 @@ public class CacheProxyServiceImpl implements ICacheProxyService {
 	 * 根据groupid, slot, 操作类型 取对应redis实例 
 	 */
 	@Override
-	public Node getDestNode(String groupId, int slot, OperateType type) throws Exception {
+	public CacheNode getDestNode(String groupId, int slot, OperateType type) throws Exception {
 		GroupInfo groupInfo = configProxyService.getGroupInfo(groupId);
 		if(groupInfo!=null) {
 			return groupInfo.getClusterNode(slot, type);

@@ -1,31 +1,30 @@
 package ibsp.cache.access.configure;
 
-import java.util.List;
-import java.util.Map;
+import ibsp.cache.access.route.CacheNode;
+import ibsp.cache.access.route.GroupInfo;
+import ibsp.cache.access.route.HaNode;
+import ibsp.cache.access.route.Proxy;
+import ibsp.cache.access.route.Slot;
+import ibsp.cache.access.util.CONSTS;
+import ibsp.cache.access.util.HttpUtils;
+import ibsp.cache.access.util.SVarObject;
+
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.ctg.itrdc.cache.common.TaskStatusConstants;
-import com.ctg.itrdc.cache.common.cacheconf.bean.GroupNode;
-import com.ctg.itrdc.cache.common.cacheconf.bean.MasterNode;
-import com.ctg.itrdc.cache.common.cacheconf.bean.SlaveNode;
-
-import ibsp.cache.access.route.GroupInfo;
-import ibsp.cache.access.route.Node;
-import ibsp.cache.access.route.Proxy;
-import ibsp.cache.access.route.GroupInfo.NodeType;
-import ibsp.cache.access.route.GroupInfo.OperateType;
-import ibsp.cache.access.util.CONSTS;
-import ibsp.cache.access.util.HttpUtils;
-import ibsp.cache.access.util.SVarObject;
 
 public class MetadataConfigProxyService implements IConfigProxyService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(MetadataConfigProxyService.class);
+	
+	private static final String SLOT_REGEX = "^\\[(\\d+)\\,\\s*(\\d+)\\]$";
+	
 	private static final ReentrantLock monitor = new ReentrantLock();
 	private static final ReentrantLock updateLock = new ReentrantLock();
 	private static MetadataConfigProxyService instance = null;
@@ -36,12 +35,7 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 	private MetasvrUrlConfig       metasvrUrl;
 	private Proxy                  proxy;
 	private GroupInfo              groupInfo;  //IBSP接入机不允许服务多个分组
-	private final MasterNodeParseCallback masterParseCallback = new MasterNodeParseCallback();
-	private final SlaveNodeParseCallback  slaveParseCallback = new SlaveNodeParseCallback();
-	private enum ActionType {
-		ADD, UPDATE, REMOVE;
-	}
-
+	
 	public static MetadataConfigProxyService getInstance(String serviceId, String proxyId, String metaServerAddress) {
 		monitor.lock();
 		try {
@@ -84,17 +78,20 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		
 		try {
 			//init proxy info
+			boolean bRWSep = false;
 			SVarObject sVarInvoke = new SVarObject();
 			boolean retInvoke = HttpUtils.getData(proxyInfoUrl, sVarInvoke);
 			if (retInvoke) {
 				JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
 				if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
 					JSONObject object = jsonObj.getJSONObject(CONSTS.JSON_HEADER_RET_INFO);
+					String sRWSep = object.getString(CONSTS.JSON_HEADER_RW_SEPARATE);
+					bRWSep = (sRWSep != null) && sRWSep.equals(CONSTS.RW_SEP_TRUE) ? true : false;
 					if (this.proxy == null) this.proxy = new Proxy();
 					
-					proxy.setAddress(object.getString("IP")+":"+object.getString("PORT"));
+					proxy.setAddress(object.getString(CONSTS.JSON_HEADER_IP)+":"+object.getString(CONSTS.JSON_HEADER_PORT));
 					proxy.setGroups(this.serviceId);
-					proxy.setJmxport(Integer.parseInt(object.getString("STAT_PORT")));
+					proxy.setJmxport(Integer.parseInt(object.getString(CONSTS.JSON_HEADER_STAT_PORT)));
 					proxy.setProxyName(this.proxyId);
 				} else {
 					logger.error("接入机初始化异常！"+jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO));
@@ -108,78 +105,65 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
 					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
 						JSONArray array = jsonObj.getJSONArray(CONSTS.JSON_HEADER_RET_INFO);
+						if (groupInfo == null) this.groupInfo = new GroupInfo(serviceId, bRWSep);
 						
-						//TODO
-						System.out.println(array);
+						int clusterSize = array.size();
+						for (int i = 0; i < clusterSize; i++) {
+							JSONObject nodeClusterJson = array.getJSONObject(i);
+							
+							String haNodeId = nodeClusterJson.getString(CONSTS.JSON_HEADER_CLUSTER_NODE_ID);
+							String slot = nodeClusterJson.getString(CONSTS.JSON_HEADER_CACHE_SLOT);
+							JSONArray nodeArr = nodeClusterJson.getJSONArray(CONSTS.JSON_HEADER_CACHE_NODE);
+							int nodeSize = nodeArr.size();
+							
+							HaNode haNode = new HaNode(haNodeId);
+							for (int j = 0; j < nodeSize; j++) {
+								JSONObject nodeJson = nodeArr.getJSONObject(i);
+								String nodeId  = nodeJson.getString(CONSTS.JSON_HEADER_CACHE_NODE_ID);
+								String ip      = nodeJson.getString(CONSTS.JSON_HEADER_IP);
+								String port    = nodeJson.getString(CONSTS.JSON_HEADER_PORT);
+								boolean master = nodeJson.getString(CONSTS.JSON_HEADER_TYPE).equals(CONSTS.NODE_TYPE_MASTER);
+								
+								CacheNode node = new CacheNode(nodeId, ip, Integer.valueOf(port));
+								if (master) {
+									haNode.setMaster(node);
+								} else {
+									haNode.addSlave(node);
+								}
+							}
+							
+							haNode.init();
+							processSlot(slot, haNode);
+						}
 					} else {
-						logger.error("接入机初始化异常！"+jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO));
+						logger.error("接入机slot初始化异常！"+jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO));
 					}
 				}
 			}
 
-//			if(bChangeProxyGroups || !configUtils.chkConfigVersion(groupsVersion, zkRootPath + Constants.DEFL_PATH_SPLIT + Constants.DEFL_GROUPS_ZK_PATH_NAME)) {
-//				groupsConfigInfo.clear();
-//				groupConfig = configUtils.getGroupConfig(zkRootPath);
-//				groupsVersion = groupConfig.getVersion();
-//				if(proxy!=null) {
-//					Set<String> tmpGroups = new TreeSet<>();
-//					GroupNode groupNode = null;
-//					String[] groups = proxy.getGroups().split(",");
-//					for(String group : groups) {
-//						for(GroupNode gNode : groupConfig.getGroupNodes()) {
-//							if(gNode.getGroupName().toUpperCase().equals(group.toUpperCase())) {
-//								groupNode = gNode;
-//								break;
-//							}
-//						}
-//						if(groupNode==null) {
-//							log.error(group + "节点信息不存在!");
-//						} else {
-//							String strGroupsConfig = JSONObject.toJSONString(groupNode);
-//							log.info("load groupConfigInfo, groupId:" + group + "," + strGroupsConfig);
-//							GroupInfo groupInfo = getGroupInfo(group);
-//							if(groupInfo==null) {
-//								GroupNode groupNodeTmp = JSONObject.parseObject(strGroupsConfig, GroupNode.class);
-//								groupInfo = addGroupInfo(new GroupInfo(group, groupNodeTmp.getIsRWsep()), groupNode); 		
-//								initGroupInfo(groupInfo, groupNode);
-//							} else {
-//								//group 配置信息发生变化
-//								if(!groupInfo.getLastestTime().equals(groupNode.getLastestTime())) {
-//									updateGroupInfo(groupInfo, groupNode);
-//								}
-//							}
-//							tmpGroups.add(group);
-//							groupsConfigInfo.add(group + "^" + strGroupsConfig);
-//						}
-//					}
-//					//删除无效的group信息,即分组不存在proxy的分组列表中
-//					String[] oldGroups = proxy.getOldgroups().split(",");
-//					for(String group : oldGroups) {
-//						if(!tmpGroups.contains(group) && !"".equals(group)) {
-//							GroupInfo groupInfo = getGroupInfo(group);					        
-//							removeGroupInfo(groupInfo);
-//						}
-//					}
-//					tmpGroups.clear();
-//					tmpGroups = null;
-//				}
-//			}
-//
-//			for(String groupConfigInfo : groupsConfigInfo) {
-//				sbfConfigData.append(groupConfigInfo).append("\r\n");
-//			}
-//
-//			try {
-//				FileUtils.writeStringToFile(getConfigFile(), sbfConfigData.toString());
-//			} catch (Exception e) {
-//				log.error("proxy config file write failed!", e);	
-//			}
 			this.initiated = true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} finally {
 			updateLock.unlock();
 		}
+	}
+	
+	private void processSlot(String slotInfo, HaNode haNode) {
+		String[] slots = slotInfo.split(CONSTS.SLOT_SPLITER);
+		Pattern pattern = Pattern.compile(SLOT_REGEX);
+		
+		for (String s : slots) {
+			Matcher matcher = pattern.matcher(s);
+			if (matcher.find()) {
+				int startSlot = Integer.valueOf(matcher.group(1));
+				int endSlot   = Integer.valueOf(matcher.group(2));
+				
+				Slot slot = new Slot(startSlot, endSlot, haNode);
+				groupInfo.addSlot(slot);
+			}
+		}
+		
 	}
 
 	public Proxy getProxyInfo() {
@@ -188,118 +172,6 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 
 	public GroupInfo getGroupInfo(String groupid) {
 		return this.groupInfo;
-	}
-
-	private <T> T parse(ParseCallback<T> action, MasterNode mNode, SlaveNode sNode, GroupInfo groupInfo, Node node, ActionType type) throws Exception {
-		T t = (T)action.doParse(mNode, sNode, node);
-		if(t==null) return null;
-		if(t instanceof Node) {
-			NodeAction(groupInfo, (Node)t, type);
-		} else if (t instanceof Node[]) {
-			for(int i=0; i < ((Node[])t).length; i++) 
-			{
-				if(((Node[])t)[i]!=null) {
-					NodeAction(groupInfo, ((Node[])t)[i], type);
-				}
-			}
-		}
-		return t;
-	}
-
-	private void NodeAction(GroupInfo groupInfo, Node node, ActionType type) throws Exception {
-		if(type.equals(ActionType.ADD)) {
-			groupInfo.addNode(node);
-		} else if(type.equals(ActionType.UPDATE)) {
-			groupInfo.updateNode(node);
-		} else if(type.equals(ActionType.REMOVE)) {
-			groupInfo.removeNode(node, true);
-		}
-	}
-
-	/**
-	 * 初始化group信息
-	 * @param groupInfo
-	 * @param gNode
-	 * @throws Exception
-	 */
-	private void initGroupInfo(GroupInfo groupInfo, GroupNode gNode) throws Exception {
-		Node masterNode = null;
-		for(MasterNode mNode : gNode.getNodes()) {
-			masterNode = parse(masterParseCallback, mNode, null, groupInfo, new Node(mNode.getMasterName()), ActionType.ADD);
-			for(SlaveNode sNode : mNode.getSlaveNodes()) {
-				parse(slaveParseCallback, null, sNode, groupInfo, masterNode, ActionType.ADD);										
-			}
-		}
-	}
-
-	/**
-	 * 更新group信息
-	 * @param groupInfo
-	 * @param gNode
-	 * @throws Exception
-	 */
-	private void updateGroupInfo(GroupInfo groupInfo, GroupNode gNode) throws Exception {
-		Node masterNode = null;
-		List<MasterNode> nodes = gNode.getNodes();
-		
-		//删除group中无效结点，先删后加，否则会产生槽段冲突
-		for(Map.Entry<String, Node> mapNode : groupInfo.getNodes().entrySet()) {
-			boolean ok = false;
-			for (MasterNode node : nodes) {
-				if (node.getMasterName().equals(mapNode.getKey())) {
-					ok = true;
-					break;
-				}
-			}
-				
-			if (!ok) {
-				NodeAction(groupInfo, mapNode.getValue(), ActionType.REMOVE);
-			}
-		}
-		
-		//新增或更新group结点
-		for(MasterNode mNode : gNode.getNodes()) {
-			if(groupInfo.getNodes().containsKey(mNode.getMasterName())) {
-				masterNode = parse(masterParseCallback, mNode, null, groupInfo, new Node(mNode.getMasterName()), ActionType.UPDATE);
-			} else {
-				masterNode = parse(masterParseCallback, mNode, null, groupInfo, new Node(mNode.getMasterName()), ActionType.ADD);
-			}
-			for(SlaveNode sNode : mNode.getSlaveNodes()) {
-				if(groupInfo.getNodes().containsKey(sNode.getSlaveName())) {
-					parse(slaveParseCallback, null, sNode, groupInfo, masterNode, ActionType.UPDATE);									
-				} else {
-					parse(slaveParseCallback, null, sNode, groupInfo, masterNode, ActionType.ADD);
-				}
-			}
-		}
-
-		groupInfo.setGroupid(gNode.getGroupName());
-		groupInfo.setRWSep(gNode.getIsRWsep());
-		groupInfo.setLastestTime(gNode.getLastestTime());
-	}
-
-
-
-	private class MasterNodeParseCallback implements ParseCallback<Node> {
-		public Node doParse(MasterNode mNode, SlaveNode sNode, Node masterNode) throws Exception {
-			String[] url = mNode.getConnUrl().split(":");
-			//根据node标志状态转换成读写状态
-			OperateType operateType = TaskStatusConstants.CONS_DILATATION_DATA_PROCESS.equals(mNode.getStatus()) ? OperateType.READ : OperateType.WRITE;
-			return new Node(masterNode.getId(), url[0], Integer.parseInt(url[1]), Integer.parseInt(mNode.getStartSlot()), Integer.parseInt(mNode.getEndSlot()), operateType, NodeType.MASTER, mNode.isEnabled());    								
-		}
-	}
-
-	private class SlaveNodeParseCallback implements ParseCallback<Node> {
-		public Node doParse(MasterNode mNode, SlaveNode sNode, Node masterNode) throws Exception {
-			String[] url = sNode.getConnUrl().split(":");
-			//根据node标志状态转换成读写状态
-			OperateType operateType = TaskStatusConstants.CONS_DILATATION_DATA_PROCESS.equals(sNode.getStatus()) ? OperateType.READ : OperateType.WRITE;
-			return new Node(sNode.getSlaveName(), url[0], Integer.parseInt(url[1]), masterNode.getStart_slot(), masterNode.getEnd_slot(), operateType, NodeType.SLAVE, sNode.isEnabled());				
-		}
-	}
-
-	private interface ParseCallback<T> {
-		T doParse(MasterNode mNode, SlaveNode sNode, Node masterNode) throws Exception;
 	}
 
 }
