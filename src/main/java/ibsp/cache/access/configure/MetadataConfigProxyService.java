@@ -31,15 +31,16 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 	
 	private boolean                initiated;
 	private String                 serviceId;
+	private String				   serviceName;
 	private String                 proxyId;
 	private MetasvrUrlConfig       metasvrUrl;
 	private Proxy                  proxy;
 	private GroupInfo              groupInfo;  //IBSP接入机不允许服务多个分组
 	
-	public static MetadataConfigProxyService getInstance(String serviceId, String proxyId, String metaServerAddress) {
+	public static MetadataConfigProxyService getInstance(String proxyId, String metaServerAddress) {
 		monitor.lock();
 		try {
-			if(instance==null) instance = new MetadataConfigProxyService(serviceId, proxyId, metaServerAddress);
+			if(instance==null) instance = new MetadataConfigProxyService(proxyId, metaServerAddress);
 		}finally {
 			monitor.unlock();
 		}
@@ -50,12 +51,10 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		return instance;
 	}
 
-	private MetadataConfigProxyService(String serviceId, String proxyId, String metasvrUrl) {
+	private MetadataConfigProxyService(String proxyId, String metasvrUrl) {
 		this.initiated = false;
-		this.serviceId = serviceId;
 		this.proxyId = proxyId;
 		this.metasvrUrl = new MetasvrUrlConfig(metasvrUrl);
-		this.groupInfo = new GroupInfo(serviceId, false);
 	}
 
 	@Override
@@ -72,8 +71,6 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		if (this.initiated) return;
 		String proxyInfoUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
 				CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_PROXY_INFO, "INST_ID="+this.proxyId);
-		String cacheNodeUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
-				CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_CLUSTER_INFO, "SERV_ID="+this.serviceId);
 		updateLock.lock();
 		
 		try {
@@ -89,8 +86,11 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 					bRWSep = (sRWSep != null) && sRWSep.equals(CONSTS.RW_SEP_TRUE) ? true : false;
 					if (this.proxy == null) this.proxy = new Proxy();
 					
+					this.serviceId = object.getString(CONSTS.JSON_HEADER_SERV_ID);
+					this.serviceName = object.getString(CONSTS.JSON_HEADER_SERV_NAME);
+					
 					proxy.setAddress(object.getString(CONSTS.JSON_HEADER_IP)+":"+object.getString(CONSTS.JSON_HEADER_PORT));
-					proxy.setGroups(this.serviceId);
+					proxy.setGroups(this.serviceName);
 					proxy.setJmxport(Integer.parseInt(object.getString(CONSTS.JSON_HEADER_STAT_PORT)));
 					proxy.setProxyName(this.proxyId);
 				} else {
@@ -98,14 +98,17 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 				}
 			}
 			
+			String cacheNodeUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
+					CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_CLUSTER_INFO, "SERV_ID="+this.serviceId);
+			
 			//init cluster info
-			if (proxy != null) {
+			if (proxy != null && this.serviceId != null) {
 				retInvoke = HttpUtils.getData(cacheNodeUrl, sVarInvoke);
 				if (retInvoke) {
 					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
 					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
 						JSONArray array = jsonObj.getJSONArray(CONSTS.JSON_HEADER_RET_INFO);
-						if (groupInfo == null) this.groupInfo = new GroupInfo(serviceId, bRWSep);
+						if (groupInfo == null) this.groupInfo = new GroupInfo(serviceName, bRWSep);
 						
 						int clusterSize = array.size();
 						for (int i = 0; i < clusterSize; i++) {

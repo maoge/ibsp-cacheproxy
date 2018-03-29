@@ -71,7 +71,6 @@ public class AccessMain {
 //        String proxyName = PropertiesUtils.getInstance("init").get(CONSTS.CONS_ZOOKEEPER_ACCESS_NAME);
 //        String zkConnectUrl = PropertiesUtils.getInstance("init").get(CONSTS.CONS_ZOOKEEPER_HOST);
 //        String zkRootPath = PropertiesUtils.getInstance("init").get(CONSTS.CONS_ZOOKEEPER_ROOT_PATH);
-		String serviceID = PropertiesUtils.getInstance("init").get(CONSTS.CONS_SERVICE_ID);
 		String proxyID = PropertiesUtils.getInstance("init").get(CONSTS.CONS_PROXY_ID);
      	String metasvrUrl = PropertiesUtils.getInstance("init").get(CONSTS.CONS_METASVR_ROOTURL);
 		
@@ -81,7 +80,7 @@ public class AccessMain {
 		
 		final ICacheProxyService cacheProxyService = CacheProxyServiceImpl.getInstance();
 //		cacheProxyService.setConfigProxyService(ZkConfigProxyService.getInstance(proxyName, zkConnectUrl, zkRootPath));
-		cacheProxyService.setConfigProxyService(MetadataConfigProxyService.getInstance(serviceID, proxyID, metasvrUrl));
+		cacheProxyService.setConfigProxyService(MetadataConfigProxyService.getInstance(proxyID, metasvrUrl));
 		Log.info("加载接入机配置...");
 		cacheProxyService.loadConfigInfo(Config.getConfig().isAuto_refresh(),
 				Config.getConfig().getAuto_refresh_interval(),

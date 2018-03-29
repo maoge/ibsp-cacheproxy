@@ -11,6 +11,8 @@ public final class CONSTS {
 	
 	public static final String JSON_HEADER_RET_CODE    = "RET_CODE";
 	public static final String JSON_HEADER_RET_INFO    = "RET_INFO";
+	public static final String JSON_HEADER_SERV_ID     = "SERV_ID";
+	public static final String JSON_HEADER_SERV_NAME   = "SERV_NAME";
 	public static final String JSON_HEADER_IP          = "IP";
 	public static final String JSON_HEADER_PORT        = "PORT";
 	public static final String JSON_HEADER_RW_SEPARATE = "RW_SEPARATE";
