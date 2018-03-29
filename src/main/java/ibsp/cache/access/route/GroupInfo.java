@@ -89,4 +89,22 @@ public class GroupInfo {
 		this.groupid = groupid;
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder("");
+		result.append(this.groupid + ": {");
+		for (String key : this.mapHaNodes.keySet()) {
+			result.append(key+": {");
+			HaNode node = this.mapHaNodes.get(key);
+			result.append("master: "+node.getMaster().getIp()+":"+node.getMaster().getPort()+", ");
+			for (CacheNode slave : node.getSlaves()) {
+				result.append("slave: "+slave.getIp()+":"+slave.getPort()+", ");
+			}
+			result.delete(result.length()-2, result.length()-1);
+			result.append("}, " );
+		}
+		result.delete(result.length()-2, result.length()-1);
+		result.append("}" );
+		return result.toString();
+	}
 }

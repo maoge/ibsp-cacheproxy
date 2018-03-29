@@ -38,6 +38,10 @@ public class HaNode {
 		slavers.add(node);
 	}
 	
+	public List<CacheNode> getSlaves() {
+		return slavers;
+	}
+	
 	public void init() throws IOException {
 		if (master == null)
 			return;

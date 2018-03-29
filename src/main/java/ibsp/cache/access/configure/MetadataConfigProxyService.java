@@ -118,7 +118,7 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 							
 							HaNode haNode = new HaNode(haNodeId);
 							for (int j = 0; j < nodeSize; j++) {
-								JSONObject nodeJson = nodeArr.getJSONObject(i);
+								JSONObject nodeJson = nodeArr.getJSONObject(j);
 								String nodeId  = nodeJson.getString(CONSTS.JSON_HEADER_CACHE_NODE_ID);
 								String ip      = nodeJson.getString(CONSTS.JSON_HEADER_IP);
 								String port    = nodeJson.getString(CONSTS.JSON_HEADER_PORT);
@@ -134,10 +134,11 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 							
 							haNode.init();
 							processSlot(slot, haNode);
+							logger.info("load group info: "+this.groupInfo.toString());
 						}
 					} else {
 						logger.error("接入机slot初始化异常！"+jsonObj.getString(CONSTS.JSON_HEADER_RET_INFO));
-					}
+					} 
 				}
 			}
 
