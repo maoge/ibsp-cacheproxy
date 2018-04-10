@@ -42,8 +42,8 @@ public class MetasvrUrlConfig {
 		
 		String[] urls = metasvrUrl.split(",");
 		for (String url : urls) {
-			String httpUrl = String.format("%s://%s", CONSTS.HTTP_PROTOCAL, url.trim());
-			invalildUrlVec.add(httpUrl);
+//			String httpUrl = String.format("%s://%s", CONSTS.HTTP_PROTOCAL, url.trim());
+			invalildUrlVec.add(url);
 			invalidSize++;
 		}
 		this.doUrlCheck();
