@@ -62,6 +62,18 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		metasvrUrl.close();
 	}
 	
+	public String getMetasvrUrl() {
+		return metasvrUrl.getNextUrl();
+	}
+	
+	public void putBrokenUrl(String url) {
+		metasvrUrl.putBrokenUrl(url);
+	}
+	
+	public void doUrlCheck() {
+		metasvrUrl.doUrlCheck();
+	}
+	
 	@Override
 	/**
 	 * 从meta server拉取配置
@@ -108,7 +120,7 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 					JSONObject jsonObj = JSONObject.parseObject(sVarInvoke.getVal());
 					if (jsonObj.getIntValue(CONSTS.JSON_HEADER_RET_CODE) == CONSTS.REVOKE_OK) {
 						JSONArray array = jsonObj.getJSONArray(CONSTS.JSON_HEADER_RET_INFO);
-						if (groupInfo == null) this.groupInfo = new GroupInfo(serviceName, bRWSep);
+						if (groupInfo == null) this.groupInfo = new GroupInfo(serviceId, bRWSep);
 						
 						int clusterSize = array.size();
 						for (int i = 0; i < clusterSize; i++) {
@@ -150,6 +162,13 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 			logger.error(e.getMessage(), e);
 		} finally {
 			updateLock.unlock();
+		}
+	}
+	
+	public void doHASwitch(String servId, String clusterId, String newMasterId) {
+		if (servId.equals(groupInfo.getGroupid())) {
+			HaNode haNode = groupInfo.getHaNode(clusterId);
+			haNode.doHaSwitch(newMasterId);
 		}
 	}
 	

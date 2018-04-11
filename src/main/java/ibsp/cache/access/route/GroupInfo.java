@@ -81,6 +81,10 @@ public class GroupInfo {
         return getClusterNode(slot, type);
 	}
 	
+	public HaNode getHaNode(String id) {
+		return mapHaNodes.get(id);
+	}
+	
 	public String getGroupid() {
 		return groupid;
 	}

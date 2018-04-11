@@ -4,7 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ibsp.cache.access.configure.MetadataConfigProxyService;
+
 public class HaNode {
+	
+	private static final Logger logger = LoggerFactory.getLogger(HaNode.class);
 	
 	private String id;
 	private CacheNode master;
@@ -49,4 +56,26 @@ public class HaNode {
 		master.newProcessor();
 	}
 
+	public void doHaSwitch(String newMasterId) {
+		CacheNode newMaster = null;
+		for (CacheNode slave : slavers) {
+			if (slave.getId().equals(newMasterId)) {
+				newMaster = slave;
+				break;
+			}
+		}
+		
+		try {
+			newMaster.newProcessor();
+			this.slavers.remove(newMaster);
+			CacheNode oldMaster = this.master;
+			this.master = newMaster;
+			this.slavers.add(oldMaster);
+			oldMaster.notifyClose();
+			
+			logger.info("redis HA switch success, new master is "+newMaster.getIp()+":"+newMaster.getPort());;
+		} catch (Exception e) {
+			logger.error("HA node do redis ha switch failed...", e);
+		}
+	}
 }

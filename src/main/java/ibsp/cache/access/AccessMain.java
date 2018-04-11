@@ -21,6 +21,7 @@ import ibsp.cache.access.configure.ILoadConfigCallback;
 import ibsp.cache.access.configure.IStatisticsMBean;
 import ibsp.cache.access.configure.MetadataConfigProxyService;
 import ibsp.cache.access.configure.ProxyStatistics;
+import ibsp.cache.access.event.EventController;
 import ibsp.cache.access.pool.mempool.BufferPool;
 import ibsp.cache.access.pool.mempool.ByteArrayPool;
 import ibsp.cache.access.pool.mempool.RedisRequestPool;
@@ -117,6 +118,9 @@ public class AccessMain {
 			acceptor = new ClientAcceptor();
 			acceptor.bind(new InetSocketAddress("0.0.0.0", localPort));
 			Log.info("启动接入机接口服务...");
+			
+			//启动事件监听
+			EventController.getInstance();
 			
 			//启动JMX服务
 			ProxyStatistics proxyStatistics = new ProxyStatistics(cacheProxyService);
