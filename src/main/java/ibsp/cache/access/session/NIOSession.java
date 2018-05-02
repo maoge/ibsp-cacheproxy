@@ -20,7 +20,6 @@ import ibsp.cache.access.pool.mempool.RedisRequestPool;
 import ibsp.cache.access.protocal.reader.NioRedisInputReador;
 import ibsp.cache.access.request.RedisRequest;
 import ibsp.cache.access.respond.RespondWriter;
-import ibsp.cache.access.route.GroupInfo.OperateType;
 import ibsp.cache.access.util.CONSTS;
 import ibsp.cache.access.util.HealthMonitor;
 import ibsp.cache.access.util.IDGenerator;
