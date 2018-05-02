@@ -1,11 +1,5 @@
 package ibsp.cache.access.configure;
 
-/**
- * 
- * @author Aladdin
- *
- */
-
 public interface IProxyService {
 	
 	/**

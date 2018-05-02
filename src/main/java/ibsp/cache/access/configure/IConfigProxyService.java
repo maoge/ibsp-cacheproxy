@@ -1,15 +1,7 @@
 package ibsp.cache.access.configure;
 
-import java.util.Map;
-
 import ibsp.cache.access.route.GroupInfo;
 import ibsp.cache.access.route.Proxy;
-
-/**
- * 
- * @author Aladdin
- *
- */
 
 public interface IConfigProxyService extends IProxyService {
 	

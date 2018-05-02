@@ -49,6 +49,8 @@ public class EventSockListener {
 		controller.start();
 
 		isStarted = true;
+		
+		logger.info("event listener started!");
 	}
 
 	public void stop() throws IOException {
@@ -60,6 +62,8 @@ public class EventSockListener {
 			controller.stop();
 
 			isStarted = false;
+			
+			logger.info("event listener closed!");
 		}
 	}
 	

@@ -12,8 +12,6 @@ import ibsp.cache.access.util.CONSTS;
 import ibsp.cache.access.util.HttpUtils;
 import ibsp.cache.access.util.SVarObject;
 
-
-
 public class MetasvrUrlConfig {
 	
 	private static Logger logger = LoggerFactory.getLogger(MetasvrUrlConfig.class);

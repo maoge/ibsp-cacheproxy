@@ -7,8 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibsp.cache.access.configure.MetadataConfigProxyService;
-
 public class HaNode {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HaNode.class);

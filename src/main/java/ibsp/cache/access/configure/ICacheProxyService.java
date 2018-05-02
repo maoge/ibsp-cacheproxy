@@ -7,11 +7,6 @@ import ibsp.cache.access.route.GroupInfo;
 import ibsp.cache.access.route.Proxy;
 import ibsp.cache.access.route.GroupInfo.OperateType;
 
-/**
- * 
- * @author Aladdin
- *
- */
 public interface ICacheProxyService {
 
 	public IConfigProxyService getConfigProxyService();
