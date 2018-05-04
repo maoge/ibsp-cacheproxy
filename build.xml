@@ -5,6 +5,7 @@
 	<property file="build.properties" />
 	<property file="version.properties" />
 	<property environment="env" />
+	<property name="compile.level" value="1.8" />
 	<property name="src.dir" value="${basedir}/src" />
 	<property name="lib.dir" value="${basedir}/lib" />
 	<property name="build.dir" value="${basedir}/build" />
@@ -15,10 +16,8 @@
 	<target name="output">
 		<antcall target="clean" />
 		<antcall target="init" />
-		<antcall target="getversion" />
 		<antcall target="build" />
 		<antcall target="copy" />
-		<antcall target="copylib" />
 		<antcall target="makejar" />
 	</target>
 
@@ -28,6 +27,7 @@
 
 	<target name="clean">
 		<delete dir="${build.dir}" />
+		<delete dir="${output.dir}" />
 	</target>
 
 	<target name="init">
@@ -48,8 +48,8 @@
 	</target>
 
 	<target name="build">
-		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="on">
-			<compilerarg line="-encoding UTF-8"/>
+		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="on" includeantruntime="on">
+			<compilerarg line="-source ${compile.level} -target ${compile.level} -encoding UTF-8"/>
 			<classpath refid="project.classpath" />
 		</javac>
 	</target>
@@ -73,13 +73,15 @@
 	</target>
 
 	<target name="makejar" depends="build">
-		<jar jarfile="${output.dir}/${projectname}.jar">
+		<jar jarfile="${output.dir}/${projectname}-${version}.jar">
 			<fileset dir="${build.dir}">
 				<include name="ibsp/cache/access/**"/>
 			</fileset>
 			
 			<manifest>
-				<attribute name="Main-Class" value="ibsp.cache.access" />
+				<attribute name="Main-Class" value="ibsp.cache.access.AccessMain"/>
+				<attribute name="Manifest-Version" value="${version}"/>
+				<attribute name="Conf-Path" value="conf"/>
 			</manifest>
 		</jar>
 
