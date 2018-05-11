@@ -146,19 +146,19 @@ public class ProxyStatistics implements IStatisticsMBean, DynamicMBean, Serializ
             Class<? extends ProxyStatistics> cls = this.getClass();
             
             ModelMBeanAttributeInfo attribute1 = new ModelMBeanAttributeInfo("access_client_conns", "",
-            		cls.getMethod("getAccessClientConns", (Class<?>)null), null);
+            		cls.getMethod("getAccessClientConns", null), null);
             ModelMBeanAttributeInfo attribute2 = new ModelMBeanAttributeInfo("access_redis_conns", "",
-            		cls.getMethod("getAccessRedisConns", (Class<?>)null), null);
+            		cls.getMethod("getAccessRedisConns", null), null);
             ModelMBeanAttributeInfo attribute3 = new ModelMBeanAttributeInfo("access_group_list", "",
-            		cls.getMethod("getAccessGroupList", (Class<?>)null), null);
+            		cls.getMethod("getAccessGroupList", null), null);
             ModelMBeanAttributeInfo attribute4 = new ModelMBeanAttributeInfo("access_request_tps", "",
-            		cls.getMethod("getAccessRequestTps", (Class<?>)null), null);
+            		cls.getMethod("getAccessRequestTps", null), null);
             ModelMBeanAttributeInfo attribute5 = new ModelMBeanAttributeInfo("access_process_max_time", "",
-            		cls.getMethod("getAccessProcessMaxTime", (Class<?>)null), null);
+            		cls.getMethod("getAccessProcessMaxTime", null), null);
             ModelMBeanAttributeInfo attribute6 = new ModelMBeanAttributeInfo("access_process_avg_time", "",
-            		cls.getMethod("getAccessProcessAvTime", (Class<?>)null), null);
+            		cls.getMethod("getAccessProcessAvTime", null), null);
             ModelMBeanAttributeInfo attribute7 = new ModelMBeanAttributeInfo("access_request_excepts", "",
-            		cls.getMethod("getAccessRequestExcepts", (Class<?>)null), null);
+            		cls.getMethod("getAccessRequestExcepts", null), null);
             
             
             Method m = cls.getMethod("execute", new Class[] { String.class });

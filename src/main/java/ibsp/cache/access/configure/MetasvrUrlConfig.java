@@ -113,7 +113,7 @@ public class MetasvrUrlConfig {
 			int idx = invalidSize - 1;
 			for (; idx >= 0; idx--) {
 				String url = invalildUrlVec.get(idx);
-				String reqUrl = String.format("%s/%s/%s", url, CONSTS.META_SERVICE, CONSTS.FUN_URL_TEST);
+				String reqUrl = String.format("http://%s/%s/%s", url, CONSTS.META_SERVICE, CONSTS.FUN_URL_TEST);
 				
 				SVarObject sVarInvoke = new SVarObject();
 				boolean retInvoke = HttpUtils.getData(reqUrl, sVarInvoke);

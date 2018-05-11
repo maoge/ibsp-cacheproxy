@@ -19,7 +19,7 @@ public class BasicOperation {
 		int ret = CONSTS.REVOKE_NOK;
 
 		String rootUrl = MetadataConfigProxyService.getInstance().getMetasvrUrl();
-		String reqUrl = String.format("%s/%s/%s", rootUrl, CONSTS.META_SERVICE, CONSTS.FUN_URL_TEST);
+		String reqUrl = String.format("http://%s/%s/%s", rootUrl, CONSTS.META_SERVICE, CONSTS.FUN_URL_TEST);
 
 		SVarObject sVarInvoke = new SVarObject();
 		boolean retInvoke = HttpUtils.getData(reqUrl, sVarInvoke);
