@@ -81,7 +81,7 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 	public void loadConfigInfo() {
 		
 		if (this.initiated) return;
-		String proxyInfoUrl = String.format("http://%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
+		String proxyInfoUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
 				CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_PROXY_INFO, "INST_ID="+this.proxyId);
 		updateLock.lock();
 		
@@ -110,7 +110,7 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 				}
 			}
 			
-			String cacheNodeUrl = String.format("http://%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
+			String cacheNodeUrl = String.format("%s/%s/%s?%s", metasvrUrl.getNextUrl(), 
 					CONSTS.CACHE_SERVICE, CONSTS.FUN_GET_CLUSTER_INFO, "SERV_ID="+this.serviceId);
 			
 			//init cluster info
