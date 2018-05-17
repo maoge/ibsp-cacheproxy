@@ -27,12 +27,18 @@ public class Config {
 	// 后面优化点，根据客户端报文的最大值动态调整这个缓冲值
 	private int bytebuffer_level0 = 128;
 	private int bytebuffer_level1 = 2176;
-	private int bytebuffer_level2 = 32768;
-	private int bytebuffer_level3 = 1048576;
+	private int bytebuffer_level2 = 4224;
+	private int bytebuffer_level3 = 10368;
+	private int bytebuffer_level4 = 20608;
+	private int bytebuffer_level5 = 32768;
+	private int bytebuffer_level6 = 1048576;
 	private int buffer_pool_level0_size = 200000;    // 一级  ByteBuffer 数量
 	private int buffer_pool_level1_size = 200000;    // 二级  ByteBuffer 数量
-	private int buffer_pool_level2_size = 6400;      // 三级  ByteBuffer 数量
-	private int buffer_pool_level3_size = 200;       // 四级  ByteBuffer 数量    (应对收发大包的情况)
+	private int buffer_pool_level2_size = 40000;     // 三级  ByteBuffer 数量
+	private int buffer_pool_level3_size = 16000;     // 四级  ByteBuffer 数量
+	private int buffer_pool_level4_size = 10000;     // 五级  ByteBuffer 数量
+	private int buffer_pool_level5_size = 8000;      // 六级  ByteBuffer 数量
+	private int buffer_pool_level6_size = 110;       // 七级  ByteBuffer 数量    (应对收发大包的情况)
 	
 	private int bytearray_level0=128;
 	private int bytearray_level1=2048;
@@ -74,10 +80,16 @@ public class Config {
 		this.bytebuffer_level1 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytebuffer.level1") );
 		this.bytebuffer_level2 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytebuffer.level2") );
 		this.bytebuffer_level3 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytebuffer.level3") );
+		this.bytebuffer_level4 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytebuffer.level4") );
+		this.bytebuffer_level5 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytebuffer.level5") );
+		this.bytebuffer_level6 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytebuffer.level6") );
 		this.buffer_pool_level0_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level0_size") );
 		this.buffer_pool_level1_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level1_size") );
 		this.buffer_pool_level2_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level2_size") );
 		this.buffer_pool_level3_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level3_size") );
+		this.buffer_pool_level4_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level4_size") );
+		this.buffer_pool_level5_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level5_size") );
+		this.buffer_pool_level6_size = Integer.valueOf( PropertiesUtils.getInstance("init").get("buffer_pool_level6_size") );
 		
 		this.bytearray_level0 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytearray.level0") );
 		this.bytearray_level1 = Integer.valueOf( PropertiesUtils.getInstance("init").get("bytearray.level1") );
@@ -138,6 +150,12 @@ public class Config {
 			return buffer_pool_level2_size;
 		else if (level == 3)
 			return buffer_pool_level3_size;
+		else if (level == 4)
+			return buffer_pool_level4_size;
+		else if (level == 5)
+			return buffer_pool_level5_size;
+		else if (level == 6)
+			return buffer_pool_level6_size;
 		else
 			return 0;
 	}
@@ -247,6 +265,18 @@ public class Config {
 
 	public int getBytebuffer_level3() {
 		return bytebuffer_level3;
+	}
+	
+	public int getBytebuffer_level4() {
+		return bytebuffer_level4;
+	}
+	
+	public int getBytebuffer_level5() {
+		return bytebuffer_level5;
+	}
+	
+	public int getBytebuffer_level6() {
+		return bytebuffer_level6;
 	}
 
 	public int getBytearray_level0() {

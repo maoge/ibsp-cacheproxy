@@ -403,7 +403,7 @@ public class RedisRequest extends Request {
 		if (backResp != null) {
 			backResp.clear();
 			
-			if ((backRespLen + CONSTS.RESPOND_HEAD_LEN) >= CONSTS.LARGE_PACK_LEN) {
+			if ((backRespLen + CONSTS.RESPOND_HEAD_LEN) > CONSTS.LARGE_PACK_LEN) {
 				byteBufferPool.recycle(backResp);   // 大包，池中本来就少，用完就归还否则残留在Request中，Request池很大导致ByteBuffer大包越用越少
 				backResp = null;
 			}

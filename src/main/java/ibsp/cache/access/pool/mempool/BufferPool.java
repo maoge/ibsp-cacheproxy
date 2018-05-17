@@ -25,11 +25,15 @@ public class BufferPool {
 	
 	private int level0 = 128;
 	private int level1 = 2176;
-	private int level2 = 32768;
-	private int level3 = 1048576;
+	private int level2 = 4224;
+	private int level3 = 10368;
+	private int level4 = 20608;
+	private int level5 = 32768;
+	private int level6 = 1048576;
 	
 	private int[] level_tab;
-	private static AtomicInteger[] count_tab = { new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0) };
+	private static AtomicInteger[] count_tab = { new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), 
+			new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0) };
 	private final List<BlockQueuePool<BufferProxy>> items = new ArrayList<BlockQueuePool<BufferProxy>>();
 	
 	private class ByteBufferFactory implements ObjectFactory<BufferProxy> {
@@ -67,8 +71,11 @@ public class BufferPool {
 		level1 = Config.getConfig().getBytebuffer_level1();
 		level2 = Config.getConfig().getBytebuffer_level2();
 		level3 = Config.getConfig().getBytebuffer_level3();
+		level4 = Config.getConfig().getBytebuffer_level4();
+		level5 = Config.getConfig().getBytebuffer_level5();
+		level6 = Config.getConfig().getBytebuffer_level6();
 		
-		level_tab = new int[]{ level0, level1, level2, level3 };
+		level_tab = new int[]{ level0, level1, level2, level3, level4, level5, level6 };
 		
 		for (int i = 0; i < level_tab.length; i++) {
 			int count = Config.getConfig().getBuffer_pool_level_size(i);
@@ -102,13 +109,14 @@ public class BufferPool {
 		} else {
 			return createTempBuffer(size);
 		}
-		
-//		return createTempBuffer(size);
 	}
 	
 	public void recycle(BufferProxy buffer) {
 		int byteSize = buffer.getBuffer().capacity();
 		if (!checkValid(byteSize))
+			return;
+		
+		if (!buffer.isDirect())
 			return;
 		
 		buffer.clear();

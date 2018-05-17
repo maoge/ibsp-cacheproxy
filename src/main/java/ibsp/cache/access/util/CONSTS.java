@@ -4,7 +4,7 @@ public final class CONSTS {
 	
 	public static final byte SPLIT_BYTE = 0x15;
 	
-	public static final int LARGE_PACK_LEN = 32*1024;
+	public static final int LARGE_PACK_LEN = 10*1024 + 128;
 	
 	// IBSP
 	public static final String CONF_PATH             = "conf";

@@ -283,6 +283,4 @@ public class BufferProxy {
 		return buffer.asDoubleBuffer();
 	}
 	
-	
-	
 }
