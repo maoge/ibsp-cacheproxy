@@ -19,7 +19,7 @@ import ibsp.cache.access.util.RedisUtil.SupportCommand;
 public class RouterProcessor {
 	
 	private int routerCnt = 1;
-	private int seed = 0;
+	private long seed = 0;
 	private RouterRuner[] runers;
 	private static RouterProcessor ROUTER;
 	

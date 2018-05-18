@@ -377,7 +377,7 @@ public class NIOSession {
 			} catch (IOException e) {
 				// maybe the remote client closed the connetion actively
 				if (session != null) {
-					sessionReaderLogger.warn("IOException from "+ session.clientIP+":"+session.clientPort);
+					sessionReaderLogger.warn("IOException from "+ session.clientIP+":"+session.clientPort, e);
 					session.exceptionEnd(new RouteException("remote client connection closed ROUTERRERINFO.e11 ......", ROUTERRERINFO.e11, request, e), false);
 					session = null;  // 置NULL, 防止进入 finally 重新注册读事件
 				}
@@ -387,13 +387,13 @@ public class NIOSession {
 					session.exceptionEnd(e, false);
 				}
 			} catch (NullPointerException e) {
-				sessionReaderLogger.error("NIOSession Reader NullPointerException caused by remote closed,  remote address:" + getClientIP() + ":" + getClientPort());
+				sessionReaderLogger.error("NIOSession Reader NullPointerException caused by remote closed,  remote address:" + getClientIP() + ":" + getClientPort(), e);
 				session.clearLastRequest();
 				requestPool.recycle(request);
 				request = null;
 				session = null;  // 置NULL, 防止进入 finally 重新注册读事件
 			} catch (Throwable e) {
-				sessionReaderLogger.error(e);
+				sessionReaderLogger.error(e.getMessage(), e);
 				if (session != null) {
 					session.exceptionEnd(new RouteException("remote client connection closed ROUTERRERINFO.e21 ......", ROUTERRERINFO.e21, request, e), false);
 				}

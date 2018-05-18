@@ -35,7 +35,7 @@ public class ClientAcceptor implements Runnable {
 	private boolean bRunning = false;
 	
 	int processorCnt = 1;
-	int seed = 0;
+	long seed = 0;
 	
 	public ClientAcceptor() throws IOException {
 		super();
@@ -155,7 +155,7 @@ public class ClientAcceptor implements Runnable {
 	}
 	
 	private IoProcessor getRandomProcessor() {
-		IoProcessor ioProcessor = ioProcessors[seed++ % processorCnt];
+		IoProcessor ioProcessor = ioProcessors[(int) (seed++ % processorCnt)];
 		if (seed == Integer.MAX_VALUE) {
 			seed = 0;
 		}

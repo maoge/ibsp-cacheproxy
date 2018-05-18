@@ -60,7 +60,7 @@ public class NIORedisProcessor implements IRedisProcessor, Runnable {
 	
 	private volatile boolean bRunning = false;
 	
-	private int randomIdx = 0;
+	private long randomIdx = 0;
 	
 	private LiveChecker checker;
 	private ScheduledExecutorService checkExecutor;
@@ -268,7 +268,7 @@ public class NIORedisProcessor implements IRedisProcessor, Runnable {
 	
 	public void dispatchRequest(Request request) throws RouteException {
 		if (isConnected) {
-			int idx = randomIdx++ % connNumPerRedis;
+			int idx = (int) (randomIdx++ % connNumPerRedis);
 			NIORedisConnection conn = (NIORedisConnection) redisConns[idx];
 			conn.addRequest((RedisRequest) request);
 		} else {
