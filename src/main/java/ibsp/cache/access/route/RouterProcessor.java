@@ -42,7 +42,7 @@ public class RouterProcessor {
 		if (routerCnt == 1) {
 			runers[0].addRequest(request);
 		} else if (routerCnt > 1) {
-			runers[seed++ % routerCnt].addRequest(request);
+			runers[(int) (seed++ % routerCnt)].addRequest(request);
 		}
 	}
 	
