@@ -12,6 +12,7 @@ public class ByteArray {
 	
 	public ByteArray(byte[] bytes) {
 		this.setBytes(bytes);
+		this.capacity = bytes.length;
 	}
 
 	public byte[] getBytes() {

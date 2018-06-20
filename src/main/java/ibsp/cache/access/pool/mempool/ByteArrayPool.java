@@ -33,8 +33,7 @@ public class ByteArrayPool {
 		
 		@Override
 		public PoolObject<ByteArray> create() {
-			byte[] bytes = new byte[chunksize];
-			return new PoolObject<ByteArray>(new ByteArray(bytes));
+			return new PoolObject<ByteArray>(new ByteArray(chunksize));
 		}
 
 		@Override
