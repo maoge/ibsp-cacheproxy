@@ -438,8 +438,8 @@ public class NIORedisConnection implements IRedisConnection {
 			String s = sBuf.toString();
 			//String ss = s.replaceAll("\\r\\\n", "\\\\r\\\\n");
 			
-			System.out.println("DownStream len:" + buflen);
-			System.out.println("DownStream context:" + s);
+			parserLogger.error("DownStream len:" + buflen);
+			parserLogger.error("DownStream context:" + s);
 		}
 		
 		private void processHead() {
