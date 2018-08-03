@@ -205,10 +205,10 @@ public class HealthMonitor {
 				double deltaProcessTime = processTime - lastProcessTime;
 				long deltaTS = currTS - lastRecordTS;
 				
-				long revReqTPS = deltaRevReq*1000 / deltaTS;
-				long normalTPS = deltaNormalRep*1000 / deltaTS;
-				long exceptionTPS = deltaException*1000 / deltaTS;
-				double avrProcessTime = deltaProcessTime / deltaNormalRep;
+				long revReqTPS = deltaTS == 0 ? 0L : deltaRevReq*1000 / deltaTS;
+				long normalTPS = deltaTS == 0 ? 0L : deltaNormalRep*1000 / deltaTS;
+				long exceptionTPS = deltaTS == 0 ? 0L : deltaException*1000 / deltaTS;
+				double avrProcessTime = deltaNormalRep == 0 ? 0.00D : deltaProcessTime / deltaNormalRep;
 				long repTotalCnt = normalRepTotalCnt + exceptionTotalCnt;
 
 				LOGGER.info("RevReqTPS:" + revReqTPS + ", NormalWriteBackTPS:" + normalTPS +

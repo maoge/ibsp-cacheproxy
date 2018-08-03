@@ -26,7 +26,7 @@ public class Metrics implements Runnable {
 	
 	private HealthMonitor monitor;
 	private IConfigProxyService service;
-	private static final long INTERVAL = 60 * 1000L;
+	private static final long INTERVAL = 10 * 1000L;
 	private long lastRecordTS;
 	private long lastRevReqTotalCnt;
 	private long lastExceptionTotalCnt;
@@ -86,7 +86,7 @@ public class Metrics implements Runnable {
 			
 			try {
 				//接入机时段内请求处理平均耗时
-				access_process_av_time = deltaProcessTime / deltaRevReq;
+				access_process_av_time = deltaRevReq == 0L ? 0.00D : deltaProcessTime / deltaRevReq;
 				LOGGER.info("Metrics: access_process_av_time:"+access_process_av_time);
 			} catch (Exception e) {
 				printErrorLog(e, 	"Error while getting average process time...");

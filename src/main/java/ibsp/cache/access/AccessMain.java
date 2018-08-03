@@ -2,25 +2,23 @@ package ibsp.cache.access;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
+import java.rmi.registry.LocateRegistry;
+import java.security.Principal;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.remote.*;
+import javax.security.auth.Subject;
 
+import ibsp.cache.access.configure.*;
 import org.apache.log4j.PropertyConfigurator;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibsp.cache.access.client.acceptor.ClientAcceptor;
-import ibsp.cache.access.configure.CacheProxyServiceImpl;
-import ibsp.cache.access.configure.ICacheProxyService;
-import ibsp.cache.access.configure.ILoadConfigCallback;
-import ibsp.cache.access.configure.IStatisticsMBean;
-import ibsp.cache.access.configure.MetadataConfigProxyService;
-import ibsp.cache.access.configure.ProxyStatistics;
 import ibsp.cache.access.event.EventController;
 import ibsp.cache.access.pool.mempool.BufferPool;
 import ibsp.cache.access.pool.mempool.ByteArrayPool;
@@ -28,38 +26,70 @@ import ibsp.cache.access.pool.mempool.RedisRequestPool;
 import ibsp.cache.access.pool.threadpool.WorkerPool;
 import ibsp.cache.access.util.CONSTS;
 import ibsp.cache.access.util.HealthMonitor;
-import ibsp.cache.access.util.JMXManager;
 import ibsp.cache.access.util.Metrics;
 import ibsp.cache.access.util.PropertiesUtils;
 
 public class AccessMain {
 	private static final Logger Log = LoggerFactory.getLogger(AccessMain.class);
-	private static final String MBEAN_PROXY = "com.ctg.itrdc.cache.access:type=Proxy";
+	private static final String MBEAN_PROXY = "ibsp.metaserver.cache.access:name=Proxy";
 	private static final CountDownLatch runLatch = new CountDownLatch(1);
 	private static ClientAcceptor acceptor = null;
 	private static MBeanServer mbs = null;
-    private static Server JMXServer = null;
 
-	private static void registerUnregisterJMX(boolean doRegister, IStatisticsMBean statisicsBean) {
-		try {
-			if (mbs == null ){
-				mbs = ManagementFactory.getPlatformMBeanServer();
-			}
-			ObjectName name = new ObjectName(MBEAN_PROXY);
-			if (doRegister){
-				if (!mbs.isRegistered(name)){
-					mbs.registerMBean(statisicsBean, name);
-				}
-			} else {
-				if (mbs.isRegistered(name)){
-					mbs.unregisterMBean(name);
-				}
-			}
-		} catch (Exception e) {
-			Log.error("Unable to start/stop JMX", e);
+	private static void registerUnregisterJMX(boolean doRegister) throws Exception {
+
+		if (mbs == null ){
+			mbs = ManagementFactory.getPlatformMBeanServer();
 		}
+		ObjectName name = new ObjectName(MBEAN_PROXY);
+		if (doRegister){
+			if (!mbs.isRegistered(name)){
+				mbs.registerMBean(Statistics.get(), name);
+			}
+		} else {
+			if (mbs.isRegistered(name)){
+				mbs.unregisterMBean(name);
+			}
+		}
+
 	}
-	
+
+	private static void startJMX(ICacheProxyService cacheProxyService) throws Exception {
+		registerUnregisterJMX(true);
+
+		int rmiPort = cacheProxyService.getProxyInfo().getJmxport();
+		LocateRegistry.createRegistry(rmiPort);
+
+		Map<String, Object> props = new HashMap<>();
+		props.put(JMXConnectorServer.AUTHENTICATOR, createJMXAuthenticator("admin", "admin"));
+
+		JMXServiceURL url = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://%s:%s/jmxrmi", "127.0.0.1",
+				String.valueOf(rmiPort)));
+		JMXConnectorServer jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, props, mbs);
+		jmxConnector.start();
+	}
+
+	private static JMXAuthenticator createJMXAuthenticator(String credentialUserName, String credentialPassword) {
+		return new JMXAuthenticator() {
+			public Subject authenticate(Object credentials) {
+				String[] sCredentials = (String[]) credentials;
+				if (null == sCredentials || sCredentials.length != 2) {
+					throw new SecurityException("Authentication failed!");
+				}
+				String userName = sCredentials[0];
+				String pValue = sCredentials[1];
+
+				if (credentialUserName.equals(userName) && credentialPassword.equals(pValue)) {
+					Set<Principal> principals = new HashSet<>();
+					principals.add(new JMXPrincipal(userName));
+					return new Subject(true, principals, Collections.EMPTY_SET,
+							Collections.EMPTY_SET);
+				}
+				throw new SecurityException("Authentication failed!");
+			}
+		};
+	}
+
 	private static void InitPool() {
 		BufferPool.setPool(new BufferPool());
 		ByteArrayPool.setPool(new ByteArrayPool());
@@ -69,18 +99,13 @@ public class AccessMain {
 	
 	public static void main(String[] args) {
 		PropertyConfigurator.configure(PropertiesUtils.getInstance("log4j").getProperties());		
-//        String proxyName = PropertiesUtils.getInstance("init").get(CONSTS.CONS_ZOOKEEPER_ACCESS_NAME);
-//        String zkConnectUrl = PropertiesUtils.getInstance("init").get(CONSTS.CONS_ZOOKEEPER_HOST);
-//        String zkRootPath = PropertiesUtils.getInstance("init").get(CONSTS.CONS_ZOOKEEPER_ROOT_PATH);
 		String proxyID = PropertiesUtils.getInstance("init").get(CONSTS.CONS_PROXY_ID);
      	String metasvrUrl = PropertiesUtils.getInstance("init").get(CONSTS.CONS_METASVR_ROOTURL);
-		
-		
+
 		Config.setConfig(new Config());
 		InitPool();
 		
 		final ICacheProxyService cacheProxyService = CacheProxyServiceImpl.getInstance();
-//		cacheProxyService.setConfigProxyService(ZkConfigProxyService.getInstance(proxyName, zkConnectUrl, zkRootPath));
 		cacheProxyService.setConfigProxyService(MetadataConfigProxyService.getInstance(proxyID, metasvrUrl));
 		Log.info("加载接入机配置...");
 		cacheProxyService.loadConfigInfo(Config.getConfig().isAuto_refresh(),
@@ -123,22 +148,14 @@ public class AccessMain {
 			EventController.getInstance();
 			
 			//启动JMX服务
-			ProxyStatistics proxyStatistics = new ProxyStatistics(cacheProxyService);
-			registerUnregisterJMX(true, proxyStatistics);
-	    	JMXManager jmxManager = JMXManager.getInstance(cacheProxyService);
-	    	JMXServer = new Server();
-	    	JMXServer.getContainer().addEventListener(jmxManager.getContainer());
-	    	JMXServer.addBean(jmxManager.getContainer());
-	    	QueuedThreadPool jmxThreadPool = new QueuedThreadPool();
-	    	jmxThreadPool.setDaemon(true);
-	    	jmxThreadPool.setMaxThreads(0);
-	    	jmxThreadPool.setMinThreads(0);
-	    	JMXServer.setThreadPool(jmxThreadPool);
-	    	JMXServer.start();
+			Log.info("启动JMX服务...");
+			startJMX(cacheProxyService);
 	    	
-			Log.info("接入机启动成功，绑定端口:" + localPort);
+			Log.info("接入机启动成功，绑定端口:" + localPort + ", JMX端口:" +
+					cacheProxyService.getProxyInfo().getJmxport());
 		} catch (Exception e) {
 			Log.error("接入机启动失败！", e);
+			System.exit(0);
 		}
 	}
 
