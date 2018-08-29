@@ -456,7 +456,7 @@ public class NIORedisConnection implements IRedisConnection {
 						parserLogger.error("parse HEAD error, length match but data not match extend head ......");
 						System.out.println("idx:" + idx + ", headOffset:" + headOffset);
 						printBuffer(srcByteBuff);
-						init();
+						initWithErr();
 					}
 				} else {
 					int headLeft = CONSTS.PROTO_HEAD_LEN - headPartOffset;
@@ -468,7 +468,7 @@ public class NIORedisConnection implements IRedisConnection {
 					} else {
 						parserLogger.error("parse HEAD error, left head not match ...... idx:" + idx + ", srcBuffLen:" + srcBuffLen + ", srcLeft:" + srcLeft);
 						printBuffer(srcByteBuff);
-						init();
+						initWithErr();
 					}
 				}
 			} else {
@@ -480,7 +480,7 @@ public class NIORedisConnection implements IRedisConnection {
 				} else {
 					parserLogger.error("parse HEAD error, left bytes not match ...... idx:" + idx + ", srcBuffLen:" + srcBuffLen + ", srcLeft:" + srcLeft);
 					printBuffer(srcByteBuff);
-					init();
+					initWithErr();
 				}
 			}
 			
@@ -508,7 +508,7 @@ public class NIORedisConnection implements IRedisConnection {
 				} else {
 					parserLogger.error("parse PARTIAL_HEAD error, left bytes not match ......");
 					printBuffer(srcByteBuff);
-					init();
+					initWithErr();
 				}
 			}
 		}
@@ -520,7 +520,7 @@ public class NIORedisConnection implements IRedisConnection {
 					// id长度超过 long 最大长度
 					parserLogger.error("parse ID error, data length exceeds long type max value in alpha bytes ......");
 					printBuffer(srcByteBuff);
-					init();
+					initWithErr();
 					break;
 				}
 				
@@ -536,7 +536,7 @@ public class NIORedisConnection implements IRedisConnection {
 					request = requestMap.get(redisReqId);
 					if (request == null) {
 						parserLogger.error("requestMap not found redisReqId:" + redisReqId);
-						init();
+						initWithErr();
 					}
 					
 					break;
@@ -549,7 +549,7 @@ public class NIORedisConnection implements IRedisConnection {
 					
 					// 数据出现异常时暂时不能回收request 因为无法预知当前已经获取的redisReqId是否完整
 					
-					init();
+					initWithErr();
 					break;
 				}
 				redisReqId *= 10;
@@ -571,7 +571,7 @@ public class NIORedisConnection implements IRedisConnection {
 					// resp长度超过 int 最大长度
 					parserLogger.error("parse RESP_LEN error, resp length exceeds int type max value in alpha bytes ......");
 					printBuffer(srcByteBuff);
-					init();
+					initWithErr();
 					break;
 				}
 				
@@ -606,7 +606,7 @@ public class NIORedisConnection implements IRedisConnection {
 					} else {
 						parserLogger.error("parse RESP_LEN error, resp length end flag not found ......");
 						printBuffer(srcByteBuff);
-						init();
+						initWithErr();
 						break;
 					}
 				}
@@ -641,7 +641,7 @@ public class NIORedisConnection implements IRedisConnection {
 					// id 数据异常 [^0-9]
 					parserLogger.error("parse RESP_LEN error, data not in [0-9] ...... redisReqId:" + redisReqId + ", idx:" + idx + ", srcBuffLen:" + srcBuffLen + ", error data: " + (int) b);
 					printBuffer(srcByteBuff);
-					init();
+					initWithErr();
 					break;
 				}
 				respLen *= 10;
@@ -678,7 +678,7 @@ public class NIORedisConnection implements IRedisConnection {
 					} else {
 						parserLogger.error("parse resp data error, end flag not found ...... idx:" + idx + ", srcBuffLen:" + srcBuffLen);
 						printBuffer(srcByteBuff);
-						init();
+						initWithErr();
 						err = true;
 					}
 					idx += respLeft;
@@ -687,7 +687,7 @@ public class NIORedisConnection implements IRedisConnection {
 							", srcBuffLen:" + srcBuffLen + ", respLeft:" + respLeft + 
 							", respLen:" + respLen + ", respHaveRead:" + respHaveRead);
 					printBuffer(srcByteBuff);
-					init();
+					initWithErr();
 					err = true;
 				}
 			} else {
@@ -796,6 +796,11 @@ public class NIORedisConnection implements IRedisConnection {
 		
 		private void init() {
 			idx += CONSTS.PROTO_HEAD_LEN;
+			clear();
+		}
+		
+		private void initWithErr() {
+			idx += 1;
 			clear();
 		}
 		
