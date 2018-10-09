@@ -78,6 +78,10 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		return proxyId;
 	}
 	
+	public String getServiceID() {
+		return serviceId;
+	}
+	
 	@Override
 	/**
 	 * 从meta server拉取配置

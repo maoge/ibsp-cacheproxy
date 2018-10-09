@@ -49,7 +49,7 @@ public class EventController {
 		eventCntInQueue = new AtomicInteger(0);
 		eventQueue      = new ConcurrentLinkedQueue<JSONObject>();
 		lsnrPort = -1;
-		servID = MetadataConfigProxyService.getInstance().getProxyID();
+		servID = MetadataConfigProxyService.getInstance().getServiceID();
 	}
 
 	public static EventController getInstance() {
