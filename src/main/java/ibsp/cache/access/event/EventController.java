@@ -33,6 +33,7 @@ public class EventController {
 	private TimerEventRunner timerEventRunner;
 	
 	private ReentrantLock lock = null;
+	private String servID;
 	
 	private static EventController theInstance = null;
 	private static ReentrantLock intanceLock = null;
@@ -48,6 +49,7 @@ public class EventController {
 		eventCntInQueue = new AtomicInteger(0);
 		eventQueue      = new ConcurrentLinkedQueue<JSONObject>();
 		lsnrPort = -1;
+		servID = MetadataConfigProxyService.getInstance().getProxyID();
 	}
 
 	public static EventController getInstance() {
@@ -286,7 +288,7 @@ public class EventController {
 		
 		private void doReport() {
 			String lsnrAddr = String.format("%s:%d", lsnrIP, lsnrPort);
-			BasicOperation.putClientStatisticInfo("cureuprapapa", lsnrAddr);
+			BasicOperation.putClientStatisticInfo("cureuprapapa", lsnrAddr, servID);
 		}
 		
 		private void doUrlCheck() {

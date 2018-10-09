@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import ibsp.cache.access.configure.MetadataConfigProxyService;
+import ibsp.common.utils.CONSTS;
 
 public class BasicOperation {
 
@@ -70,15 +71,17 @@ public class BasicOperation {
 		return ret;
 	}
 
-	public static int putClientStatisticInfo(String context, String lsnrAddr) {
+	public static int putClientStatisticInfo(String context, String lsnrAddr, String servID) {
 		int ret = CONSTS.REVOKE_NOK;
 
 		String rootUrl = MetadataConfigProxyService.getInstance().getMetasvrUrl();
 		
 		String reqUrl = String.format("%s/%s/%s", rootUrl, CONSTS.META_SERVICE, CONSTS.FUN_PUT_STATISTIC_INFO);
-		String params = String.format("%s=%s&%s=%s&%s=%s", CONSTS.PARAM_CLIENT_TYPE, CONSTS.TYPE_CACHE_PROXY,
+		String params = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
+				CONSTS.PARAM_CLIENT_TYPE, CONSTS.TYPE_CACHE_PROXY,
 				CONSTS.PARAM_LSNR_ADDR, lsnrAddr,
-				CONSTS.PARAM_CLIENT_INFO, context);
+				CONSTS.PARAM_CLIENT_INFO, context,
+				CONSTS.PARAM_SERVICE_ID, servID);
 
 		SVarObject sVarInvoke = new SVarObject();
 		boolean retInvoke = HttpUtils.postData(reqUrl, params, sVarInvoke);

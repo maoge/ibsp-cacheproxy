@@ -98,6 +98,7 @@ public final class CONSTS {
 	public static final String PARAM_CLIENT_TYPE = "CLIENT_TYPE";
 	public static final String PARAM_LSNR_ADDR = "LSNR_ADDR";
 	public static final String PARAM_CLIENT_INFO = "CLIENT_INFO";
+	public static final String PARAM_SERVICE_ID = "SERVICE_ID";
 	
 	public static final String TYPE_CACHE_PROXY = "CACHE_PROXY";
 	

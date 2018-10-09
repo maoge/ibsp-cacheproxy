@@ -74,6 +74,10 @@ public class MetadataConfigProxyService implements IConfigProxyService {
 		metasvrUrl.doUrlCheck();
 	}
 	
+	public String getProxyID() {
+		return proxyId;
+	}
+	
 	@Override
 	/**
 	 * 从meta server拉取配置
