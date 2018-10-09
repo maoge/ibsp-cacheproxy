@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import ibsp.cache.access.configure.MetadataConfigProxyService;
-import ibsp.common.utils.CONSTS;
 
 public class BasicOperation {
 
